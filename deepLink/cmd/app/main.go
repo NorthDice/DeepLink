@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/NorthDice/deepLink/internal/config"
-	"github.com/NorthDice/deepLink/internal/lib/logger/handlers/slogpretty"
+	"github.com/NorthDice/DeepLink/internal/config"
+	"github.com/NorthDice/DeepLink/internal/lib/logger/handlers/slogpretty"
 	"log/slog"
 	"os"
 )
