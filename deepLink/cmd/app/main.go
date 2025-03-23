@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/NorthDice/DeepLink/internal/app"
 	"github.com/NorthDice/DeepLink/internal/config"
 	"github.com/NorthDice/DeepLink/internal/lib/logger/handlers/slogpretty"
 	"log/slog"
@@ -22,6 +23,10 @@ func main() {
 		slog.String("env", cfg.Env),
 		slog.Any("config", cfg),
 	)
+
+	application := app.New(log, cfg.GRPC.Port, "sdsd", cfg.TokenTTL)
+
+	application.GRPCSrv.MustRun()
 
 }
 
