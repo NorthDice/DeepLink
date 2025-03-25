@@ -41,6 +41,7 @@ type AppProvider interface {
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrInvalidAppId       = errors.New("invalid app id")
+	ErrUserAlreadyExists  = errors.New("user already exists")
 )
 
 func New(
@@ -142,8 +143,13 @@ func (a *Auth) RegisterNewUser(
 
 	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
 	if err != nil {
-		log.Error("failed to save user")
+		if errors.Is(err, storage.ErrUserExists) {
+			log.Warn("user already exists")
 
+			return 0, fmt.Errorf("%w: %s", op, ErrUserAlreadyExists)
+		}
+		log.Error("failed to save user")
+		
 		return 0, fmt.Errorf("%w: %s", err, op)
 	}
 
