@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/NorthDice/DeepLink/internal/app"
 	"github.com/NorthDice/DeepLink/internal/config"
 	"github.com/NorthDice/DeepLink/internal/lib/logger/handlers/slogpretty"
+	mypostgres "github.com/NorthDice/DeepLink/internal/storage/postgres"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -26,7 +28,14 @@ func main() {
 		slog.Any("config", cfg),
 	)
 
-	application := app.New(log, cfg.GRPC.Port, "sdsd", cfg.TokenTTL)
+	dsn := buildDSN(cfg)
+
+	storage, err := mypostgres.New(dsn)
+	if err != nil {
+		panic(err)
+	}
+
+	application := app.New(log, cfg.GRPC.Port, storage, cfg.TokenTTL)
 
 	go application.GRPCSrv.MustRun()
 
@@ -39,7 +48,6 @@ func main() {
 
 	log.Info("app stopped")
 
-	// urlExample := "postgres://username:password@localhost:5432/database_name"
 }
 
 func setupLogger(env string) *slog.Logger {
@@ -71,4 +79,14 @@ func setupPrettySlog() *slog.Logger {
 	handler := opts.NewPrettyHandler(os.Stdout)
 
 	return slog.New(handler)
+}
+
+func buildDSN(cfg *config.Config) string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		cfg.Database.Postgres.User,
+		cfg.Database.Postgres.Password,
+		cfg.Database.Postgres.Host,
+		cfg.Database.Postgres.Port,
+		cfg.Database.Postgres.Name,
+	)
 }

@@ -1,7 +1,8 @@
-package postgres
+package mypostgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/NorthDice/DeepLink/internal/domain/models"
 	"github.com/NorthDice/DeepLink/storage"
@@ -23,13 +24,13 @@ func New(dsn string) (*Storage, error) {
 
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	pool, err := pgxpool.
 		NewWithConfig(context.Background(), config)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return &Storage{
@@ -52,7 +53,8 @@ func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (
 	err := s.db.QueryRow(ctx, query, email, passHash).Scan(&userId)
 
 	if err != nil {
-		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == ErrConstraintUnique {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == ErrConstraintUnique {
 			return 0, fmt.Errorf("%s: %w", op, storage.ErrUserExists)
 		}
 		return 0, fmt.Errorf("%s: %w", op, err)
@@ -71,10 +73,10 @@ func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 
 	err := s.db.QueryRow(ctx, query, email).Scan(&user.ID, &user.Email, &user.PassHash)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return models.User{}, storage.ErrUserNotFound
 		}
-		return models.User{}, err
+		return models.User{}, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return user, nil
@@ -90,11 +92,29 @@ func (s *Storage) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 
 	err := s.db.QueryRow(ctx, query, userID).Scan(&isAdmin)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return false, storage.ErrUserNotFound
 		}
-		return false, err
+		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return isAdmin, nil
+}
+
+func (s *Storage) App(ctx context.Context, appId int32) (models.App, error) {
+	const op = "app.postgres"
+
+	query := `SELECT id, name, secret FROM apps WHERE id = $1`
+
+	var app models.App
+
+	err := s.db.QueryRow(ctx, query, appId).Scan(&app.ID, &app.Name, &app.Secret)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.App{}, storage.ErrAppNotFound
+		}
+		return models.App{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return app, nil
 }
