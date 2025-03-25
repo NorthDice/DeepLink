@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/NorthDice/DeepLink/internal/domain/models"
 	"github.com/NorthDice/DeepLink/internal/lib/jwt"
-	"github.com/NorthDice/DeepLink/internal/storage"
+	"github.com/NorthDice/DeepLink/storage"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"time"
