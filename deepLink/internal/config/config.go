@@ -11,6 +11,7 @@ type Config struct {
 	Env      string         `yaml:"env" env-default:"local"`
 	TokenTTL time.Duration  `yaml:"token_ttl" env-required:"true"`
 	GRPC     GRPCAuthConfig `yaml:"grpc"`
+	Database Database       `yaml:"database"`
 }
 type GRPCAuthConfig struct {
 	Port    int           `yaml:"port"`
@@ -25,7 +26,7 @@ type PostgresAuthConfig struct {
 	Port     int    `yaml:"port" env-required:"true"`
 	User     string `yaml:"user" env-required:"true"`
 	Password string `yaml:"password" env-required:"true"`
-	DBName   string `yaml:"dbname" env-required:"true"`
+	Name     string `yaml:"dbname" env-required:"true"`
 }
 
 func MustLoad() *Config {

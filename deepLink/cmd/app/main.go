@@ -38,6 +38,8 @@ func main() {
 	application.GRPCSrv.Stop()
 
 	log.Info("app stopped")
+
+	// urlExample := "postgres://username:password@localhost:5432/database_name"
 }
 
 func setupLogger(env string) *slog.Logger {

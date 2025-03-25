@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS admins
+(
+    user_id INTEGER PRIMARY KEY,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);

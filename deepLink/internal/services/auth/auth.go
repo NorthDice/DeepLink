@@ -149,7 +149,7 @@ func (a *Auth) RegisterNewUser(
 			return 0, fmt.Errorf("%w: %s", op, ErrUserAlreadyExists)
 		}
 		log.Error("failed to save user")
-		
+
 		return 0, fmt.Errorf("%w: %s", err, op)
 	}
 
