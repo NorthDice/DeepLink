@@ -21,12 +21,21 @@ type Database struct {
 	Mongo MongoAuthConfig
 }
 type MongoAuthConfig struct {
-	Url string `yaml:"url"`
+	Uri string `yaml:"uri"`
 }
 
 // fetchConfigPath fetches config path from command line flag or environment variable.
 // Priority: flag > env > default.
 // Default value is empty string.
+
+func MustLoad() *Config {
+	path := fetchConfigPath()
+	if path == "" {
+		panic("config file path is empty")
+	}
+
+	return MustLoadByPath(path)
+}
 
 func fetchConfigPath() string {
 	var res string
