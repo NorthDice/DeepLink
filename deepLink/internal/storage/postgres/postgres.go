@@ -6,13 +6,10 @@ import (
 	"fmt"
 	"github.com/NorthDice/DeepLink/internal/domain/models"
 	"github.com/NorthDice/DeepLink/storage"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-)
-
-var (
-	ErrConstraintUnique = "23505"
 )
 
 type Storage struct {
@@ -54,7 +51,7 @@ func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (
 
 	if err != nil {
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == ErrConstraintUnique {
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
 			return 0, fmt.Errorf("%s: %w", op, storage.ErrUserExists)
 		}
 		return 0, fmt.Errorf("%s: %w", op, err)
