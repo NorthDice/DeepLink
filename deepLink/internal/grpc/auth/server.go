@@ -44,8 +44,8 @@ func (s *serverAPI) Login(
 	req *authv1.LoginRequest,
 ) (*authv1.LoginResponse, error) {
 
-	if err := validateLogin(req); err != nil {
-		return nil, err
+	if req.GetEmail() == "" {
+		return nil, status.Error(codes.InvalidArgument, "email is empty")
 	}
 
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int32(req.GetAppId()))
@@ -112,7 +112,7 @@ func validateLogin(req *authv1.LoginRequest) error {
 	}
 
 	if req.GetAppId() == emptyValue {
-		return status.Error(codes.InvalidArgument, "app id is empty")
+		return status.Error(codes.InvalidArgument, "appID is empty")
 	}
 
 	return nil

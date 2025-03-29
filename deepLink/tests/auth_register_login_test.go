@@ -84,10 +84,6 @@ func TestRegistrationLogin_DuplicateRegistration(t *testing.T) {
 	assert.ErrorContains(t, err, "user already exists")
 }
 
-func randomFakePassword() string {
-	return gofakeit.Password(true, true, true, true, false, passDefaultLen)
-}
-
 func TestRegister_FailCases(t *testing.T) {
 	ctx, st := suite.New(t)
 
@@ -128,4 +124,74 @@ func TestRegister_FailCases(t *testing.T) {
 
 		})
 	}
+}
+
+/*
+func TestLogin_FailCases(t *testing.T) {
+	ctx, st := suite.New(t)
+	tests := []struct {
+		name        string
+		email       string
+		password    string
+		appID       int32
+		expectError string
+	}{
+		{
+			name:        "Login with Empty Password",
+			email:       gofakeit.Email(),
+			password:    "",
+			appID:       appID,
+			expectError: `password is empty`,
+		},
+		{
+			name:        "Login with Empty Email",
+			email:       "",
+			password:    randomFakePassword(),
+			appID:       appID,
+			expectError: `email is empty`,
+		},
+		{
+			name:        "Login with Both Empty Email and Password",
+			email:       "",
+			password:    "",
+			appID:       appID,
+			expectError: `email is empty`,
+		},
+		{
+			name:        "Login with Non-Matching Password",
+			email:       gofakeit.Email(),
+			password:    randomFakePassword(),
+			appID:       appID,
+			expectError: `invalid email or password`,
+		},
+		{
+			name:        "Login with Empty AppID",
+			email:       gofakeit.Email(),
+			password:    randomFakePassword(),
+			appID:       emptyAppID,
+			expectError: `appID is empty`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := st.AuthClient.Register(ctx, &authv1.RegisterRequest{
+				Email:    gofakeit.Email(),
+				Password: randomFakePassword(),
+			})
+			require.Error(t, err)
+
+			_, err = st.AuthClient.Login(ctx, &authv1.LoginRequest{
+				Email:    tt.email,
+				Password: tt.password,
+				AppId:    tt.appID,
+			})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tt.expectError)
+		})
+	}
+}
+*/
+
+func randomFakePassword() string {
+	return gofakeit.Password(true, true, true, true, false, passDefaultLen)
 }
