@@ -87,3 +87,45 @@ func TestRegistrationLogin_DuplicateRegistration(t *testing.T) {
 func randomFakePassword() string {
 	return gofakeit.Password(true, true, true, true, false, passDefaultLen)
 }
+
+func TestRegister_FailCases(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	tests := []struct {
+		name        string
+		email       string
+		password    string
+		expectError string
+	}{
+		{
+			name:        "Register with Empty Password",
+			email:       gofakeit.Email(),
+			password:    "",
+			expectError: `password is empty`,
+		},
+		{
+			name:        "Register with Empty Email",
+			email:       "",
+			password:    randomFakePassword(),
+			expectError: `email is empty`,
+		},
+		{
+			name:        "Register with Both Password",
+			email:       "",
+			password:    "",
+			expectError: `email is empty`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := st.AuthClient.Register(ctx, &authv1.RegisterRequest{
+				Email:    tt.email,
+				Password: tt.password,
+			})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tt.expectError)
+
+		})
+	}
+}
