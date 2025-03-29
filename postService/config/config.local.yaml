@@ -1,0 +1,9 @@
+env: "local"
+
+grpc:
+  port: 44045
+  timeout: "10h"
+
+database:
+  mongodb:
+    url: "mongodb+srv://mongo:1111@cluster0.dlnyjmr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"

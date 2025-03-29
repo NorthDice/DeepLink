@@ -44,8 +44,8 @@ func (s *serverAPI) Login(
 	req *authv1.LoginRequest,
 ) (*authv1.LoginResponse, error) {
 
-	if req.GetEmail() == "" {
-		return nil, status.Error(codes.InvalidArgument, "email is empty")
+	if err := validateLogin(req); err != nil {
+		return nil, err
 	}
 
 	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int32(req.GetAppId()))
