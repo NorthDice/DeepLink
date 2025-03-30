@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type postService interface {
+type PostService interface {
 	CreatePost(
 		ctx context.Context,
 		userId int64,
@@ -45,7 +45,7 @@ type postService interface {
 
 type serverAPI struct {
 	postv1.UnimplementedPostServer
-	service postService
+	service PostService
 }
 
 const (

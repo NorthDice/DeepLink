@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"github.com/yourusername/deepLink/post-service/internal/app"
 	"github.com/yourusername/deepLink/post-service/internal/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -46,6 +49,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	application := app.New(log, cfg.GRPC.Port, "fsd")
+
+	go application.GRPCServer.MustRun()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	<-stop
+
+	application.GRPCServer.Stop()
+
+	log.Info("shutting down")
 }
 
 func setupLogger(env string) *slog.Logger {
