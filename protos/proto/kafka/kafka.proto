@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package kafkaService;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/NorthDice/DeepLink/protos;kafkav1";
+
+message  PostCreateEvent {
+  int64 post_id = 1;
+  int64 user_id = 2;
+  string content = 3;
+  repeated string media_url = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message PostDeletedEvent {
+  int64 post_id = 1;
+}
+
+message PostLikedEvent {
+  int64 post_id = 1;
+  int64 user_id = 2;
+}
+
+message CommentAddedEvent {
+  int64 post_id = 1;
+  int64 user_id = 2;
+  string content = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
