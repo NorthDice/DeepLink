@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "44048:44048"
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    ports:
+      - "44049:44049"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:44048

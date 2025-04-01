@@ -18,7 +18,6 @@ const (
 
 const (
 	ErrInvalidMessageFormat = "invalid message format"
-	ErrMongoOperationFailed = "storage operation failed"
 )
 
 type Storage interface {
