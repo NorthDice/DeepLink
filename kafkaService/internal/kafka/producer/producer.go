@@ -15,6 +15,7 @@ const (
 )
 
 type KafkaProducer struct {
+	log          *slog.Logger
 	syncProducer sarama.SyncProducer
 	topicConfig  map[string]string
 }
@@ -26,16 +27,20 @@ func New(brokerList []string, log *slog.Logger) (*KafkaProducer, error) {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 5
 
+	log.Info("creating kafka producer")
+
 	producer, err := sarama.NewSyncProducer(brokerList, config)
 	if err != nil {
 		return nil, fmt.Errorf("create kafka producer fail, %s", err.Error())
 	}
 
+	log.Info("kafka producer created")
+
 	return &KafkaProducer{
 		syncProducer: producer,
 		topicConfig: map[string]string{
-			"post_created":  "post.events",
-			"post_deleted":  "post.events",
+			"post_created":  "post_created.events",
+			"post_deleted":  "post_deleted.events",
 			"post_liked":    "interaction.events",
 			"comment_added": "comment.events",
 		},
@@ -47,6 +52,10 @@ func (p *KafkaProducer) Close() error {
 }
 
 func (p *KafkaProducer) produce(ctx context.Context, topic string, msg proto.Message) error {
+	const op = "KafkaService.Produce"
+
+	log := p.log.With("operation", op)
+
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -57,20 +66,31 @@ func (p *KafkaProducer) produce(ctx context.Context, topic string, msg proto.Mes
 		return err
 	}
 
+	log.Info("encoding message")
+
 	value, err := proto.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("marshal message fail, %s", err.Error())
 	}
 
-	_, _, err = p.syncProducer.SendMessage(&sarama.ProducerMessage{
+	log.Info("trying to send message")
+
+	partition, offset, err := p.syncProducer.SendMessage(&sarama.ProducerMessage{
 		Topic:     p.topicConfig[topic],
 		Value:     sarama.ByteEncoder(value),
 		Timestamp: time.Now(),
 	})
-
 	if err != nil {
 		return fmt.Errorf("send message fail, %s", err.Error())
 	}
+
+	log.Info("message successfully sent")
+	log.Info("Order stored",
+		"topic", topic,
+		"partition", partition,
+		"offset", offset,
+	)
+
 	return nil
 }
 
@@ -83,7 +103,7 @@ func (p *KafkaProducer) ProducePostCreated(ctx context.Context, event *kafkav1.P
 	return p.produce(ctx, "post_created", event)
 }
 
-func (p *KafkaProducer) ProducePostDeleted(ctx context.Context, event *kafkav1.PostCreateEvent) error {
+func (p *KafkaProducer) ProducePostDeleted(ctx context.Context, event *kafkav1.PostDeletedEvent) error {
 	const op = "KafkaProducer.ProducePostDeleted"
 
 	if event == nil {
@@ -96,6 +116,7 @@ func (p *KafkaProducer) ProducePostDeleted(ctx context.Context, event *kafkav1.P
 
 func (p *KafkaProducer) ProducePostLiked(ctx context.Context, event *kafkav1.PostLikedEvent) error {
 	const op = "KafkaProducer.ProducePostLiked"
+
 	if event == nil {
 		return fmt.Errorf("%s: event is nil", op)
 	}
@@ -121,7 +142,7 @@ func (p *KafkaProducer) ProduceCommentAdded(ctx context.Context, event *kafkav1.
 func validateMessageSize(msg proto.Message) error {
 
 	if size := proto.Size(msg); size > maxMessageSize {
-		return fmt.Errorf("message to large (%d > %d)", size, maxMessageSize)
+		return fmt.Errorf("message too large (%d > %d)", size, maxMessageSize)
 	}
 
 	return nil
