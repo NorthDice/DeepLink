@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/NorthDice/DeepLink/deepLink/internal/services/auth"
 	authv1 "github.com/NorthDice/DeepLink/protos/gen/go/auth"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -104,11 +103,11 @@ func (s *serverAPI) IsAdmin(
 }
 
 func validateLogin(req *authv1.LoginRequest) error {
-	if req.Email == emptyString {
+	if req.GetEmail() == emptyString {
 		return status.Error(codes.InvalidArgument, "email is empty")
 	}
 
-	if req.Password == emptyString {
+	if req.GetPassword() == emptyString {
 		return status.Error(codes.InvalidArgument, "password is empty")
 	}
 
@@ -120,11 +119,12 @@ func validateLogin(req *authv1.LoginRequest) error {
 }
 
 func validateRegister(req *authv1.RegisterRequest) error {
-	if req.Email == emptyString {
+	if req.GetEmail() == emptyString {
+
 		return status.Error(codes.InvalidArgument, "email is empty")
 	}
 
-	if req.Password == emptyString {
+	if req.GetPassword() == emptyString {
 		return status.Error(codes.InvalidArgument, "password is empty")
 	}
 

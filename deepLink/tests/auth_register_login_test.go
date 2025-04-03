@@ -126,7 +126,6 @@ func TestRegister_FailCases(t *testing.T) {
 	}
 }
 
-/*
 func TestLogin_FailCases(t *testing.T) {
 	ctx, st := suite.New(t)
 	tests := []struct {
@@ -162,7 +161,7 @@ func TestLogin_FailCases(t *testing.T) {
 			email:       gofakeit.Email(),
 			password:    randomFakePassword(),
 			appID:       appID,
-			expectError: `invalid email or password`,
+			expectError: `invalid credentials`,
 		},
 		{
 			name:        "Login with Empty AppID",
@@ -178,7 +177,7 @@ func TestLogin_FailCases(t *testing.T) {
 				Email:    gofakeit.Email(),
 				Password: randomFakePassword(),
 			})
-			require.Error(t, err)
+			require.NoError(t, err)
 
 			_, err = st.AuthClient.Login(ctx, &authv1.LoginRequest{
 				Email:    tt.email,
@@ -190,7 +189,6 @@ func TestLogin_FailCases(t *testing.T) {
 		})
 	}
 }
-*/
 
 func randomFakePassword() string {
 	return gofakeit.Password(true, true, true, true, false, passDefaultLen)
