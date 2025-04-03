@@ -19,7 +19,19 @@ services:
       context: .
       dockerfile: ./deepLink/Dockerfile
     ports:
-      - "8080:8080"
+      - "44044:44044"
     volumes:
       - ./deepLink/config:/app/config
-
+    depends_on:
+      - postgresdb
+  postgresdb:
+    restart: always
+    image: postgres:latest
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1111"
+      POSTGRES_DB: "authDB"
+    ports:
+      - "5436:5432"

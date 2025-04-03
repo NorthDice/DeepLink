@@ -15,5 +15,5 @@ WORKDIR /app
 COPY --from=builder /app/authgrpc .
 COPY deepLink/config/config.local.yaml ./config/
 
-EXPOSE 8080
+EXPOSE 44044
 CMD ["./authgrpc", "--config=./config/config.local.yaml"]
