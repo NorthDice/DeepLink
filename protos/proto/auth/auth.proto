@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package auth;
+package auth.v1;
 
-option go_package = "github.com/NorthDice/DeepLink/protos;authv1";
+option go_package = "github.com/NorthDice/DeepLink/protos/v1;authv1";
 
 service Auth {
   rpc Register(RegisterRequest) returns (RegisterResponse);
