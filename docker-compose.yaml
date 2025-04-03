@@ -14,3 +14,12 @@ services:
     environment:
       KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:44048
+  authgrpc:
+    build:
+      context: .
+      dockerfile: ./deepLink/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./deepLink/config:/app/config
+
