@@ -3,7 +3,7 @@ module github.com/NorthDice/DeepLink
 go 1.24.1
 
 require (
-	github.com/NorthDice/DeepLink/protos v0.0.0
+	github.com/NorthDice/DeepLink/protos v0.1.0
 	github.com/brianvoe/gofakeit/v6 v6.28.0
 	github.com/fatih/color v1.18.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
@@ -15,7 +15,6 @@ require (
 	google.golang.org/grpc v1.71.0
 )
 
-replace github.com/NorthDice/DeepLink/protos => ../protos
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
