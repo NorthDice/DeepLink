@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"github.com/NorthDice/DeepLink/internal/domain/models"
+	"github.com/NorthDice/DeepLink/deepLink/internal/domain/models"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
 )

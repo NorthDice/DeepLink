@@ -1,9 +1,9 @@
 package app
 
 import (
-	grpcapp "github.com/NorthDice/DeepLink/internal/app/grpc"
-	"github.com/NorthDice/DeepLink/internal/services/auth"
-	mypostgres "github.com/NorthDice/DeepLink/internal/storage/postgres"
+	grpcapp "github.com/NorthDice/DeepLink/deepLink/internal/app/grpc"
+	auth "github.com/NorthDice/DeepLink/deepLink/internal/services/auth"
+	mypostgres "github.com/NorthDice/DeepLink/deepLink/internal/storage/postgres"
 
 	"log/slog"
 	"time"

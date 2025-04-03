@@ -3,8 +3,9 @@ package auth
 import (
 	"context"
 	"errors"
-	"github.com/NorthDice/DeepLink/internal/services/auth"
+	"github.com/NorthDice/DeepLink/deepLink/internal/services/auth"
 	authv1 "github.com/NorthDice/DeepLink/protos/gen/go/auth"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

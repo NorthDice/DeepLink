@@ -2,7 +2,7 @@ package suite
 
 import (
 	"context"
-	"github.com/NorthDice/DeepLink/internal/config"
+	"github.com/NorthDice/DeepLink/deepLink/internal/config"
 	authv1 "github.com/NorthDice/DeepLink/protos/gen/go/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

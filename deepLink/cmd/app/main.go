@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/NorthDice/DeepLink/internal/app"
-	"github.com/NorthDice/DeepLink/internal/config"
-	"github.com/NorthDice/DeepLink/internal/lib/logger/handlers/slogpretty"
-	mypostgres "github.com/NorthDice/DeepLink/internal/storage/postgres"
+	"github.com/NorthDice/DeepLink/deepLink/internal/app"
+	"github.com/NorthDice/DeepLink/deepLink/internal/config"
+	"github.com/NorthDice/DeepLink/deepLink/internal/lib/logger/handlers/slogpretty"
+	mypostgres "github.com/NorthDice/DeepLink/deepLink/internal/storage/postgres"
 	"log/slog"
 	"os"
 	"os/signal"

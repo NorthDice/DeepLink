@@ -1,18 +1,20 @@
-FROM golang:1.24.1-alpine
+FROM golang:1.24.1-alpine AS builder
+
+WORKDIR /app
+COPY . .
+
+RUN go mod download
+RUN go build -o authgrpc ./cmd/app
+
+FROM gcr.io/distroless/base-debian12
 
 WORKDIR /app
 
-COPY deepLink/go.mod deepLink/go.sum ./
-COPY protos/go.mod protos/go.sum ./
 
-RUN go mod download
+COPY --from=builder /app/authgrpc .
 
-COPY deepLink .
-
-RUN CGO_ENABLED=0 GOOS=linux go build -o /deeplink ./cmd/app/main.go
-
-COPY deepLink/config/config.local.yaml /app/config/config.local.yaml
+COPY config/config.local.yaml ./config/
 
 EXPOSE 8080
 
-CMD ["/deeplink", "--config=./config/config.local.yaml"]
+CMD ["./authgrpc", "--config=./config/config.local.yaml"]

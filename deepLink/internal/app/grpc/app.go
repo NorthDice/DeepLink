@@ -2,7 +2,7 @@ package grpcapp
 
 import (
 	"fmt"
-	authgrpc "github.com/NorthDice/DeepLink/internal/grpc/auth"
+	authgrpc "github.com/NorthDice/DeepLink/deepLink/internal/grpc/auth"
 	"google.golang.org/grpc"
 	"log/slog"
 	"net"

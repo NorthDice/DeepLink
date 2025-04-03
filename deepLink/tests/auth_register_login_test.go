@@ -1,8 +1,8 @@
 package tests
 
 import (
+	"github.com/NorthDice/DeepLink/deepLink/tests/suite"
 	authv1 "github.com/NorthDice/DeepLink/protos/gen/go/auth"
-	"github.com/NorthDice/DeepLink/tests/suite"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
