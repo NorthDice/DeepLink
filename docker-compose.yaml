@@ -1,37 +1,39 @@
-version: "3"
-
 services:
-  zookeeper:
-    image: wurstmeister/zookeeper
-    container_name: zookeeper
-    ports:
-      - "44048:44048"
   kafka:
-    image: wurstmeister/kafka
+    image: bitnami/kafka:latest
     container_name: kafka
     ports:
-      - "44049:44049"
+      - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: localhost
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:44048
-  authgrpc:
-    build:
-      context: .
-      dockerfile: ./deepLink/Dockerfile
-    ports:
-      - "44044:44044"
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_LISTENER_PORT: 9092
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_NAMES: INSIDE
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT
+      KAFKA_LISTENER_NAME_INSIDE: INSIDE
+      KAFKA_KRAFT_MODE: "true"
     volumes:
-      - ./deepLink/config:/app/config
-    depends_on:
-      - postgresdb
-  postgresdb:
-    restart: always
-    image: postgres:latest
-    volumes:
-      - ./.database/postgres/data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "1111"
-      POSTGRES_DB: "authDB"
-    ports:
-      - "5436:5432"
+      - ./kafka/data:/bitnami/kafka
+
+  #authgrpc:
+    #build:
+      #context: .
+      #dockerfile: ./authService/Dockerfile
+    #ports:
+      #- "44044:44044"
+    #volumes:
+      #- ./authService/config:/app/config
+    #depends_on:
+      #- postgresdb
+  #postgresdb:
+    #restart: always
+    #image: postgres:latest
+    #volumes:
+      #- ./.database/postgres/data:/var/lib/postgresql/data
+    #environment:
+      #POSTGRES_USER: "postgres"
+      #POSTGRES_PASSWORD: "1111"
+      #POSTGRES_DB: "authDB"
+    #ports:
+      #- "5436:5432"

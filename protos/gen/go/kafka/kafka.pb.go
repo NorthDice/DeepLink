@@ -350,24 +350,24 @@ func file_kafka_kafka_proto_rawDescGZIP() []byte {
 
 var file_kafka_kafka_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_kafka_kafka_proto_goTypes = []interface{}{
-	(*PostCreateEvent)(nil),       // 0: kafkaService.PostCreateEvent
-	(*PostDeletedEvent)(nil),      // 1: kafkaService.PostDeletedEvent
-	(*PostLikedEvent)(nil),        // 2: kafkaService.PostLikedEvent
-	(*CommentAddedEvent)(nil),     // 3: kafkaService.CommentAddedEvent
+	(*PostCreateEvent)(nil),       // 0: postConsumer.PostCreateEvent
+	(*PostDeletedEvent)(nil),      // 1: postConsumer.PostDeletedEvent
+	(*PostLikedEvent)(nil),        // 2: postConsumer.PostLikedEvent
+	(*CommentAddedEvent)(nil),     // 3: postConsumer.CommentAddedEvent
 	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 	(*emptypb.Empty)(nil),         // 5: google.protobuf.Empty
 }
 var file_kafka_kafka_proto_depIdxs = []int32{
-	4, // 0: kafkaService.PostCreateEvent.created_at:type_name -> google.protobuf.Timestamp
-	4, // 1: kafkaService.CommentAddedEvent.created_at:type_name -> google.protobuf.Timestamp
-	0, // 2: kafkaService.KafkaService.CreatePost:input_type -> kafkaService.PostCreateEvent
-	1, // 3: kafkaService.KafkaService.DeletePost:input_type -> kafkaService.PostDeletedEvent
-	2, // 4: kafkaService.KafkaService.LikePost:input_type -> kafkaService.PostLikedEvent
-	3, // 5: kafkaService.KafkaService.AddComment:input_type -> kafkaService.CommentAddedEvent
-	5, // 6: kafkaService.KafkaService.CreatePost:output_type -> google.protobuf.Empty
-	5, // 7: kafkaService.KafkaService.DeletePost:output_type -> google.protobuf.Empty
-	5, // 8: kafkaService.KafkaService.LikePost:output_type -> google.protobuf.Empty
-	5, // 9: kafkaService.KafkaService.AddComment:output_type -> google.protobuf.Empty
+	4, // 0: postConsumer.PostCreateEvent.created_at:type_name -> google.protobuf.Timestamp
+	4, // 1: postConsumer.CommentAddedEvent.created_at:type_name -> google.protobuf.Timestamp
+	0, // 2: postConsumer.KafkaService.CreatePost:input_type -> postConsumer.PostCreateEvent
+	1, // 3: postConsumer.KafkaService.DeletePost:input_type -> postConsumer.PostDeletedEvent
+	2, // 4: postConsumer.KafkaService.LikePost:input_type -> postConsumer.PostLikedEvent
+	3, // 5: postConsumer.KafkaService.AddComment:input_type -> postConsumer.CommentAddedEvent
+	5, // 6: postConsumer.KafkaService.CreatePost:output_type -> google.protobuf.Empty
+	5, // 7: postConsumer.KafkaService.DeletePost:output_type -> google.protobuf.Empty
+	5, // 8: postConsumer.KafkaService.LikePost:output_type -> google.protobuf.Empty
+	5, // 9: postConsumer.KafkaService.AddComment:output_type -> google.protobuf.Empty
 	6, // [6:10] is the sub-list for method output_type
 	2, // [2:6] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

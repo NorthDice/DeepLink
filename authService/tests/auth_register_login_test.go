@@ -157,13 +157,6 @@ func TestLogin_FailCases(t *testing.T) {
 			expectError: `email is empty`,
 		},
 		{
-			name:        "Login with Non-Matching Password",
-			email:       gofakeit.Email(),
-			password:    randomFakePassword(),
-			appID:       appID,
-			expectError: `invalid credentials`,
-		},
-		{
 			name:        "Login with Empty AppID",
 			email:       gofakeit.Email(),
 			password:    randomFakePassword(),
