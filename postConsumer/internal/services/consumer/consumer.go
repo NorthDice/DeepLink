@@ -110,7 +110,7 @@ func (kc *KafkaConsumer) Cleanup(sarama.ConsumerGroupSession) error {
 }
 
 func (kc *KafkaConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	const op = "kafka.ConsumeClaim"
+	const op = "services.ConsumeClaim"
 	log := kc.log.With(slog.String("op", op),
 		slog.String("topic", claim.Topic()),
 		slog.Int("partition", int(claim.Partition())),
@@ -145,7 +145,7 @@ func (kc *KafkaConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim
 }
 
 func (kc *KafkaConsumer) processMessage(ctx context.Context, msg *sarama.ConsumerMessage) error {
-	const op = "kafka.processMessage"
+	const op = "services.processMessage"
 	log := kc.log.With(slog.String("op", op))
 
 	ctx, cancel := context.WithTimeout(ctx, processTimeout)

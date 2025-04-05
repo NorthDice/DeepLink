@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.12
-// source: kafka/kafka.proto
+// source: services/services.proto
 
 package kafkav1
 
@@ -210,5 +210,5 @@ var KafkaService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "kafka/kafka.proto",
+	Metadata: "services/services.proto",
 }

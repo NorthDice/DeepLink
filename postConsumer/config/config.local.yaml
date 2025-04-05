@@ -1,0 +1,12 @@
+env: "local"
+
+grpc:
+  port: 44046
+  timeout: "10h"
+
+database:
+  mongodb:
+    uri: "mongodb+srv://mongo:1111@cluster0.dlnyjmr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
+kafka:
+  brokers: "kafka1:9092"

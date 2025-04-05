@@ -27,14 +27,14 @@ func New(brokerList []string, log *slog.Logger) (*KafkaProducer, error) {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 5
 
-	log.Info("creating kafka producer")
+	log.Info("creating services producer")
 
 	producer, err := sarama.NewSyncProducer(brokerList, config)
 	if err != nil {
-		return nil, fmt.Errorf("create kafka producer fail, %s", err.Error())
+		return nil, fmt.Errorf("create services producer fail, %s", err.Error())
 	}
 
-	log.Info("kafka producer created")
+	log.Info("services producer created")
 
 	return &KafkaProducer{
 		syncProducer: producer,
