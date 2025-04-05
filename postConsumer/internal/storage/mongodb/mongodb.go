@@ -32,12 +32,7 @@ func New(
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	err = client.Ping(ctx, readpref.Primary())
+	client, err := Connect(ctx, uri)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -52,6 +47,20 @@ func (s *MongoStorage) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	return s.client.Disconnect(ctx)
+}
+func Connect(ctx context.Context, uri string) (*mongo.Client, error) {
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (s *MongoStorage) SavePost(ctx context.Context, post *kafkav1.PostCreateEvent) error {
@@ -115,7 +124,7 @@ func (s *MongoStorage) AddLike(ctx context.Context, event *kafkav1.PostLikedEven
 		slog.Int64("user_id", event.UserId),
 	)
 
-	collection := s.client.Database(s.databaseName).Collection("posts")
+	collection := s.client.Database(s.databaseName).Collection("likes")
 
 	doc := bson.M{
 		"post_id":    event.PostId,
@@ -166,8 +175,7 @@ func (s *MongoStorage) AddComment(ctx context.Context, event *kafkav1.CommentAdd
 		log.Error("failed to add event", slog.String("error", err.Error()))
 		return fmt.Errorf("%s: %w", op, err)
 	}
-
-	// Обновляем счетчик комментариев в посте
+	
 	postsCollection := s.client.Database(s.databaseName).Collection("posts")
 	update := bson.M{"$inc": bson.M{"comments_count": 1}}
 	_, err = postsCollection.UpdateOne(

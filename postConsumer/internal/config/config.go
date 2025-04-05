@@ -16,7 +16,8 @@ type Database struct {
 	MongoDB MongoConfig `yaml:"mongodb"`
 }
 type MongoConfig struct {
-	Uri string `yaml:"uri" env-required:"true"`
+	Uri  string `yaml:"uri" env-required:"true"`
+	Name string `yaml:"name" env-required:"true"`
 }
 type KafkaConfig struct {
 	Brokers string `yaml:"brokers" env-required:"true"`

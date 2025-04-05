@@ -3,6 +3,7 @@ env: "local"
 database:
   mongodb:
     uri: "mongodb+srv://mongo:1111@cluster0.dlnyjmr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    name : "deepLink"
 
 kafka:
   brokers: "kafka1:9092"
