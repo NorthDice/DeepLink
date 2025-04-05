@@ -19,7 +19,7 @@ func main() {
 
 	log.Info("starting application")
 
-	log.Info(cfg.Env, cfg.GRPC)
+	log.Info(cfg.Env)
 }
 
 func setupLogger(env string) *slog.Logger {

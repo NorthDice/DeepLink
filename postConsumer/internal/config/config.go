@@ -4,20 +4,14 @@ import (
 	"flag"
 	"github.com/ilyakaznacheev/cleanenv"
 	"os"
-	"time"
 )
 
 type Config struct {
-	Env      string     `yaml:"env"`
-	GRPC     GRPCConfig `yaml:"grpc"`
-	Database Database   `yaml:"database"`
+	Env      string   `yaml:"env"`
+	Database Database `yaml:"database"`
 	Kafka    KafkaConfig
 }
 
-type GRPCConfig struct {
-	Port    int           `yaml:"port" env-default:"44046"`
-	Timeout time.Duration `yaml:"timeout" env-default:"10s"`
-}
 type Database struct {
 	MongoDB MongoConfig `yaml:"mongodb"`
 }
