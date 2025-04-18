@@ -20,7 +20,7 @@ type MongoConfig struct {
 	Name string `yaml:"name" env-required:"true"`
 }
 type KafkaConfig struct {
-	Brokers string `yaml:"brokers" env-required:"true"`
+	Brokers []string `yaml:"brokers" env-required:"true"`
 }
 
 // fetchConfigPath fetches config path from command line flag or environment variable.

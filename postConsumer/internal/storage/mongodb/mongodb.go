@@ -175,7 +175,7 @@ func (s *MongoStorage) AddComment(ctx context.Context, event *kafkav1.CommentAdd
 		log.Error("failed to add event", slog.String("error", err.Error()))
 		return fmt.Errorf("%s: %w", op, err)
 	}
-	
+
 	postsCollection := s.client.Database(s.databaseName).Collection("posts")
 	update := bson.M{"$inc": bson.M{"comments_count": 1}}
 	_, err = postsCollection.UpdateOne(

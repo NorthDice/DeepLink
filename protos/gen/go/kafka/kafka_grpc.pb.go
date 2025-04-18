@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.12
-// source: services/services.proto
+// source: kafka/kafka.proto
 
-package kafkav1
+package kafka1
 
 import (
 	context "context"
@@ -39,7 +39,7 @@ func NewKafkaServiceClient(cc grpc.ClientConnInterface) KafkaServiceClient {
 
 func (c *kafkaServiceClient) CreatePost(ctx context.Context, in *PostCreateEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/postConsumer.KafkaService/CreatePost", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kafkaService.KafkaService/CreatePost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *kafkaServiceClient) CreatePost(ctx context.Context, in *PostCreateEvent
 
 func (c *kafkaServiceClient) DeletePost(ctx context.Context, in *PostDeletedEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/postConsumer.KafkaService/DeletePost", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kafkaService.KafkaService/DeletePost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *kafkaServiceClient) DeletePost(ctx context.Context, in *PostDeletedEven
 
 func (c *kafkaServiceClient) LikePost(ctx context.Context, in *PostLikedEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/postConsumer.KafkaService/LikePost", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kafkaService.KafkaService/LikePost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *kafkaServiceClient) LikePost(ctx context.Context, in *PostLikedEvent, o
 
 func (c *kafkaServiceClient) AddComment(ctx context.Context, in *CommentAddedEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/postConsumer.KafkaService/AddComment", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/kafkaService.KafkaService/AddComment", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func _KafkaService_CreatePost_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/postConsumer.KafkaService/CreatePost",
+		FullMethod: "/kafkaService.KafkaService/CreatePost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KafkaServiceServer).CreatePost(ctx, req.(*PostCreateEvent))
@@ -141,7 +141,7 @@ func _KafkaService_DeletePost_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/postConsumer.KafkaService/DeletePost",
+		FullMethod: "/kafkaService.KafkaService/DeletePost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KafkaServiceServer).DeletePost(ctx, req.(*PostDeletedEvent))
@@ -159,7 +159,7 @@ func _KafkaService_LikePost_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/postConsumer.KafkaService/LikePost",
+		FullMethod: "/kafkaService.KafkaService/LikePost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KafkaServiceServer).LikePost(ctx, req.(*PostLikedEvent))
@@ -177,7 +177,7 @@ func _KafkaService_AddComment_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/postConsumer.KafkaService/AddComment",
+		FullMethod: "/kafkaService.KafkaService/AddComment",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KafkaServiceServer).AddComment(ctx, req.(*CommentAddedEvent))
@@ -189,7 +189,7 @@ func _KafkaService_AddComment_Handler(srv interface{}, ctx context.Context, dec 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var KafkaService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "postConsumer.KafkaService",
+	ServiceName: "kafkaService.KafkaService",
 	HandlerType: (*KafkaServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -210,5 +210,5 @@ var KafkaService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "services/services.proto",
+	Metadata: "kafka/kafka.proto",
 }

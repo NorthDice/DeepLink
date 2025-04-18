@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/IBM/sarama"
 	kafkav1 "github.com/NorthDice/DeepLink/protos/gen/go/kafka"
-	"github.com/gogo/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	"log/slog"
 	"time"
 )
@@ -28,11 +28,14 @@ type Storage interface {
 }
 
 type KafkaConsumer struct {
-	log           *slog.Logger
-	consumerGroup sarama.ConsumerGroup
-	storage       Storage
+	Log           *slog.Logger
+	ConsumerGroup sarama.ConsumerGroup
+	Storage       Storage
 	topics        []string
+	handlers      map[string]MessageHandler
 }
+
+type MessageHandler func(ctx context.Context, data []byte) error
 
 func New(
 	log *slog.Logger,
@@ -52,18 +55,62 @@ func New(
 		return nil, fmt.Errorf("failed to create consumer group: %w", err)
 	}
 
-	return &KafkaConsumer{
-		log:           log,
-		consumerGroup: consumerGroup,
-		storage:       storage,
+	kc := &KafkaConsumer{
+		Log:           log,
+		ConsumerGroup: consumerGroup,
+		Storage:       storage,
 		topics:        topics,
-	}, nil
+	}
+
+	kc.handlers = kc.initHandlers()
+
+	return kc, nil
+}
+
+func (kc *KafkaConsumer) initHandlers() map[string]MessageHandler {
+	return map[string]MessageHandler{
+		"post_created.events":  kc.handlePostCreated,
+		"post_deleted.events":  kc.handlePostDeleted,
+		"post_liked.events":    kc.handlePostLiked,
+		"comment_added.events": kc.handleCommentAdded,
+	}
+}
+
+func (kc *KafkaConsumer) handlePostCreated(ctx context.Context, data []byte) error {
+	var event kafkav1.PostCreateEvent
+	if err := proto.Unmarshal(data, &event); err != nil {
+		return fmt.Errorf("failed to unmarshal post event: %w", err)
+	}
+	return kc.Storage.SavePost(ctx, &event)
+}
+
+func (kc *KafkaConsumer) handlePostDeleted(ctx context.Context, data []byte) error {
+	var event kafkav1.PostDeletedEvent
+	if err := proto.Unmarshal(data, &event); err != nil {
+		return fmt.Errorf("failed to unmarshal post deleted event: %w", err)
+	}
+	return kc.Storage.DeletePost(ctx, &event)
+}
+
+func (kc *KafkaConsumer) handlePostLiked(ctx context.Context, data []byte) error {
+	var event kafkav1.PostLikedEvent
+	if err := proto.Unmarshal(data, &event); err != nil {
+		return fmt.Errorf("failed to unmarshal post liked event: %w", err)
+	}
+	return kc.Storage.AddLike(ctx, &event)
+}
+
+func (kc *KafkaConsumer) handleCommentAdded(ctx context.Context, data []byte) error {
+	var event kafkav1.CommentAddedEvent
+	if err := proto.Unmarshal(data, &event); err != nil {
+		return fmt.Errorf("failed to unmarshal comment added event: %w", err)
+	}
+	return kc.Storage.AddComment(ctx, &event)
 }
 
 func (kc *KafkaConsumer) Run(ctx context.Context) error {
 	const op = "consumer.Run"
-
-	log := kc.log.With(slog.String("op", op))
+	log := kc.Log.With(slog.String("op", op))
 
 	log.Info("starting consumer", slog.Any("topics", kc.topics))
 
@@ -73,7 +120,7 @@ func (kc *KafkaConsumer) Run(ctx context.Context) error {
 			log.Info("shutting down by context")
 			return nil
 		default:
-			err := kc.consumerGroup.Consume(ctx, kc.topics, kc)
+			err := kc.ConsumerGroup.Consume(ctx, kc.topics, kc)
 			if err != nil {
 				if errors.Is(err, sarama.ErrClosedConsumerGroup) {
 					return nil
@@ -87,10 +134,10 @@ func (kc *KafkaConsumer) Run(ctx context.Context) error {
 
 func (kc *KafkaConsumer) Close() error {
 	const op = "KafkaConsumer.Close"
-	log := kc.log.With(slog.String("op", op))
+	log := kc.Log.With(slog.String("op", op))
 
 	log.Info("closing consumer")
-	if err := kc.consumerGroup.Close(); err != nil {
+	if err := kc.ConsumerGroup.Close(); err != nil {
 		log.Error("failed to close consumer", slog.String("error", err.Error()))
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -100,23 +147,24 @@ func (kc *KafkaConsumer) Close() error {
 }
 
 func (kc *KafkaConsumer) Setup(sarama.ConsumerGroupSession) error {
-	kc.log.Info("consumer group session started")
+	kc.Log.Info("consumer group session started")
 	return nil
 }
 
 func (kc *KafkaConsumer) Cleanup(sarama.ConsumerGroupSession) error {
-	kc.log.Info("consumer group session ended")
+	kc.Log.Info("consumer group session ended")
 	return nil
 }
 
 func (kc *KafkaConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	const op = "services.ConsumeClaim"
-	log := kc.log.With(slog.String("op", op),
+	log := kc.Log.With(
+		slog.String("op", op),
 		slog.String("topic", claim.Topic()),
 		slog.Int("partition", int(claim.Partition())),
 	)
 
-	log.Info("starting comsuming messages")
+	log.Info("starting consuming messages")
 
 	for msg := range claim.Messages() {
 		select {
@@ -131,12 +179,13 @@ func (kc *KafkaConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim
 			slog.Time("timestamp", msg.Timestamp),
 		)
 
-		if err := kc.processMessage(session.Context(), msg); err != nil {
+		if err := kc.ProcessMessage(session.Context(), msg); err != nil {
 			log.Error("failed to process message",
 				slog.Int64("offset", msg.Offset),
 				slog.String("error", err.Error()))
 			continue
 		}
+
 		session.MarkMessage(msg, "")
 		log.Debug("message processed successfully",
 			slog.Int64("offset", msg.Offset))
@@ -144,60 +193,23 @@ func (kc *KafkaConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim
 	return nil
 }
 
-func (kc *KafkaConsumer) processMessage(ctx context.Context, msg *sarama.ConsumerMessage) error {
+func (kc *KafkaConsumer) ProcessMessage(ctx context.Context, msg *sarama.ConsumerMessage) error {
 	const op = "services.processMessage"
-	log := kc.log.With(slog.String("op", op))
+	log := kc.Log.With(slog.String("op", op))
 
 	ctx, cancel := context.WithTimeout(ctx, processTimeout)
 	defer cancel()
 
-	switch msg.Topic {
-	case "post_created.events":
-		var event kafkav1.PostCreateEvent
-		if err := proto.Unmarshal(msg.Value, &event); err != nil {
-			log.Error("failed to unmarshal post event", slog.String("error", err.Error()))
-
-			return fmt.Errorf("%s: %w", op, ErrInvalidMessageFormat)
-		}
-		if err := kc.storage.SavePost(ctx, &event); err != nil {
-			return fmt.Errorf("%s: %w", op, err)
-		}
-
-	case "post_deleted.events":
-		var event kafkav1.PostDeletedEvent
-		if err := proto.Unmarshal(msg.Value, &event); err != nil {
-			log.Error("failed to unmarshal post event", slog.String("error", err.Error()))
-
-			return fmt.Errorf("%s: %w", op, ErrInvalidMessageFormat)
-		}
-		if err := kc.storage.DeletePost(ctx, &event); err != nil {
-			return fmt.Errorf("%s: %w", op, err)
-		}
-
-	case "post_liked.events":
-		var event kafkav1.PostLikedEvent
-		if err := proto.Unmarshal(msg.Value, &event); err != nil {
-			log.Error("failed to unmarshal post event", slog.String("error", err.Error()))
-
-			return fmt.Errorf("%s: %w", op, ErrInvalidMessageFormat)
-		}
-		if err := kc.storage.AddLike(ctx, &event); err != nil {
-			return fmt.Errorf("%s: %w", op, err)
-		}
-
-	case "comment_added.events":
-		var event kafkav1.CommentAddedEvent
-		if err := proto.Unmarshal(msg.Value, &event); err != nil {
-			log.Error("failed to unmarshal comment added event", slog.String("error", err.Error()))
-
-			return fmt.Errorf("%s: %w", op, ErrInvalidMessageFormat)
-		}
-		if err := kc.storage.AddComment(ctx, &event); err != nil {
-			return fmt.Errorf("%s: %w", op, err)
-		}
-
-	default:
+	handler, exists := kc.handlers[msg.Topic]
+	if !exists {
 		return fmt.Errorf("%s: unknown topic %s", op, msg.Topic)
+	}
+
+	if err := handler(ctx, msg.Value); err != nil {
+		log.Error("failed to process message",
+			slog.String("topic", msg.Topic),
+			slog.String("error", err.Error()))
+		return fmt.Errorf("%s: %v: %w", op, ErrInvalidMessageFormat, err)
 	}
 
 	return nil

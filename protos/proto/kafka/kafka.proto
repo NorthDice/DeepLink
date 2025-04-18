@@ -4,7 +4,7 @@ package kafkaService;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
-option go_package = "github.com/NorthDice/DeepLink/protos;kafkav1";
+option go_package = "NorthDice.kafka.v1;kafka1;";
 
 service KafkaService{
   rpc CreatePost (PostCreateEvent) returns (google.protobuf.Empty);

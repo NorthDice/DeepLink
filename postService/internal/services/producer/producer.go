@@ -1,149 +1,98 @@
 package producer
 
 import (
-	"context"
+	"errors"
 	"fmt"
-	"github.com/IBM/sarama"
-	kafkav1 "github.com/NorthDice/DeepLink/protos/gen/go/kafka"
-	"github.com/gogo/protobuf/proto"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"log/slog"
-	"time"
+	"strings"
 )
 
-const (
-	maxMessageSize = 1024 * 1024
-)
+// flushTimeout is the timeout for flushing messages
+const flushTimeout = 5000 //ms
 
-type KafkaProducer struct {
-	log          *slog.Logger
-	syncProducer sarama.SyncProducer
-	topicConfig  map[string]string
+// errUnknownType is returned when the event type is not recognized
+var errUnknownType = errors.New("unknown type")
+
+// Producer the structure for the Kafka producer
+type Producer struct {
+	log      *slog.Logger
+	producer *kafka.Producer
+	topicMap map[string]string
 }
 
-func New(brokerList []string, log *slog.Logger) (*KafkaProducer, error) {
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.MaxMessageBytes = maxMessageSize
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 5
+// NewProducer creates a new Kafka producer
+func NewProducer(address []string, log *slog.Logger) (*Producer, error) {
+	config := initConfig(address)
+	topics := initTopics()
 
-	log.Info("creating services producer")
-
-	producer, err := sarama.NewSyncProducer(brokerList, config)
+	p, err := kafka.NewProducer(&config)
 	if err != nil {
-		return nil, fmt.Errorf("create services producer fail, %s", err.Error())
+		return nil, fmt.Errorf("failed to create producer: %w", err)
 	}
 
-	log.Info("services producer created")
-
-	return &KafkaProducer{
-		syncProducer: producer,
-		topicConfig: map[string]string{
-			"post_created":  "post_created.events",
-			"post_deleted":  "post_deleted.events",
-			"post_liked":    "interaction.events",
-			"comment_added": "comment.events",
-		},
+	return &Producer{
+		log:      log,
+		producer: p,
+		topicMap: topics,
 	}, nil
 }
 
-func (p *KafkaProducer) Close() error {
-	return p.syncProducer.Close()
-}
+// Produce sends a message to the appropriate Kafka topic based on the event type
+func (p *Producer) Produce(message string, eventType string) error {
+	topic, ok := p.topicMap[eventType]
+	if !ok {
+		return fmt.Errorf("%w: unknown event type: %s", errUnknownType, eventType)
+	}
 
-func (p *KafkaProducer) produce(ctx context.Context, topic string, msg proto.Message) error {
-	const op = "KafkaService.Produce"
+	kafkaMsg := kafka.Message{
+		TopicPartition: kafka.TopicPartition{
+			Topic:     &topic,
+			Partition: kafka.PartitionAny,
+		},
+		Value: []byte(message),
+		Key:   nil,
+	}
 
-	log := p.log.With("operation", op)
+	kafkaChan := make(chan kafka.Event)
+	if err := p.producer.Produce(&kafkaMsg, kafkaChan); err != nil {
+		return fmt.Errorf("failed to produce message: %w", err)
+	}
 
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
+	e := <-kafkaChan
+
+	switch ev := e.(type) {
+	case *kafka.Message:
+		return nil
+	case kafka.Error:
+		return fmt.Errorf("kafka error: %s", ev)
 	default:
+		return errUnknownType
 	}
-
-	if err := validateMessageSize(msg); err != nil {
-		return err
-	}
-
-	log.Info("encoding message")
-
-	value, err := proto.Marshal(msg)
-	if err != nil {
-		return fmt.Errorf("marshal message fail, %s", err.Error())
-	}
-
-	log.Info("trying to send message")
-
-	partition, offset, err := p.syncProducer.SendMessage(&sarama.ProducerMessage{
-		Topic:     p.topicConfig[topic],
-		Value:     sarama.ByteEncoder(value),
-		Timestamp: time.Now(),
-	})
-	if err != nil {
-		return fmt.Errorf("send message fail, %s", err.Error())
-	}
-
-	log.Info("message successfully sent")
-	log.Info("Order stored",
-		"topic", topic,
-		"partition", partition,
-		"offset", offset,
-	)
-
-	return nil
 }
 
-func (p *KafkaProducer) ProducePostCreated(ctx context.Context, event *kafkav1.PostCreateEvent) error {
-	const op = "KafkaProducer.ProducePostCreated"
-
-	if event == nil {
-		return fmt.Errorf("%s: event is nil", op)
-	}
-	return p.produce(ctx, "post_created", event)
+func (p *Producer) Close() {
+	p.producer.Flush(flushTimeout)
+	p.producer.Close()
 }
 
-func (p *KafkaProducer) ProducePostDeleted(ctx context.Context, event *kafkav1.PostDeletedEvent) error {
-	const op = "KafkaProducer.ProducePostDeleted"
-
-	if event == nil {
-		return fmt.Errorf("%s: event is nil", op)
+// initConfig initializes the Kafka producer configuration
+func initConfig(address []string) kafka.ConfigMap {
+	config := kafka.ConfigMap{
+		"bootstrap.servers": strings.Join(address, ","),
 	}
 
-	return p.produce(ctx, "post_deleted", event)
-
+	return config
 }
 
-func (p *KafkaProducer) ProducePostLiked(ctx context.Context, event *kafkav1.PostLikedEvent) error {
-	const op = "KafkaProducer.ProducePostLiked"
-
-	if event == nil {
-		return fmt.Errorf("%s: event is nil", op)
-	}
-	if event.PostId <= 0 || event.UserId <= 0 {
-		return fmt.Errorf("%s: post id or user id should be greater than 0", op)
-	}
-	return p.produce(ctx, "post_liked", event)
-}
-
-func (p *KafkaProducer) ProduceCommentAdded(ctx context.Context, event *kafkav1.CommentAddedEvent) error {
-	const op = "KafkaProducer.ProduceCommentAdded"
-
-	if event == nil {
-		return fmt.Errorf("%s: event is nil", op)
+// initTopics initializes the Kafka topics
+func initTopics() map[string]string {
+	topicMap := map[string]string{
+		"post_created":  "post_created.events",
+		"post_deleted":  "post_deleted.events",
+		"post_liked":    "interaction.events",
+		"comment_added": "comment.events",
 	}
 
-	if event.PostId <= 0 || event.UserId <= 0 {
-		return fmt.Errorf("%s: post id or user id should be greater than 0", op)
-	}
-	return p.produce(ctx, "comment_added", event)
-}
-
-func validateMessageSize(msg proto.Message) error {
-
-	if size := proto.Size(msg); size > maxMessageSize {
-		return fmt.Errorf("message too large (%d > %d)", size, maxMessageSize)
-	}
-
-	return nil
+	return topicMap
 }
