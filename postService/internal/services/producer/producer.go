@@ -16,9 +16,9 @@ var errUnknownType = errors.New("unknown type")
 
 // Producer the structure for the Kafka producer
 type Producer struct {
-	log      *slog.Logger
-	producer *kafka.Producer
-	topicMap map[string]string
+	log        *slog.Logger
+	producer   *kafka.Producer
+	topicArray []string
 }
 
 // NewProducer creates a new Kafka producer
@@ -32,15 +32,15 @@ func NewProducer(address []string, log *slog.Logger) (*Producer, error) {
 	}
 
 	return &Producer{
-		log:      log,
-		producer: p,
-		topicMap: topics,
+		log:        log,
+		producer:   p,
+		topicArray: topics,
 	}, nil
 }
 
 // Produce sends a message to the appropriate Kafka topic based on the event type
 func (p *Producer) Produce(message string, eventType string) error {
-	topic, ok := p.topicMap[eventType]
+	topic, ok := "post_created.events", true
 	if !ok {
 		return fmt.Errorf("%w: unknown event type: %s", errUnknownType, eventType)
 	}
@@ -86,12 +86,12 @@ func initConfig(address []string) kafka.ConfigMap {
 }
 
 // initTopics initializes the Kafka topics
-func initTopics() map[string]string {
-	topicMap := map[string]string{
-		"post_created":  "post_created.events",
-		"post_deleted":  "post_deleted.events",
-		"post_liked":    "interaction.events",
-		"comment_added": "comment.events",
+func initTopics() []string {
+	topicMap := []string{
+		"post_created.events",
+		"post_deleted.events",
+		"interaction.events",
+		"comment.events",
 	}
 
 	return topicMap

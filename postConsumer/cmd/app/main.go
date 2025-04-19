@@ -1,10 +1,9 @@
 package main
 
 import (
-	"context"
 	"kafka-service/internal/config"
+	"kafka-service/internal/handler"
 	"kafka-service/internal/services/consumer"
-	"kafka-service/internal/storage/mongodb"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -17,6 +16,11 @@ const (
 	envDev   = "dev"
 )
 
+var (
+	consumerGroup = "post-consumer"
+)
+var address = []string{"localhost:29092"}
+
 func main() {
 	cfg := config.MustLoad()
 
@@ -26,37 +30,27 @@ func main() {
 
 	log.Info(cfg.Env)
 
-	mongoClient, err := mongodb.New(cfg.Database.MongoDB.Uri, cfg.Database.MongoDB.Name)
+	/*mongoClient, err := mongodb.New(cfg.Database.MongoDB.Uri, cfg.Database.MongoDB.Name)
 	if err != nil {
 		log.Error("failed to connect to mongodb", "error", err)
 	}
 	defer mongoClient.Close()
-
-	kafkaConsumer, err := consumer.New(log, cfg.Kafka.Brokers, "post-consumer-group", mongoClient, []string{
-		"post_created.events",
-		"post_deleted.events",
-		"post_liked.events",
-		"comment_added.events",
-	})
-
+	*/
+	h := handler.NewHandler(*log)
+	c, err := consumer.NewConsumer(h, address, consumerGroup, "post_created.events", log)
 	if err != nil {
-		log.Error("failed to initialize kafka consumer", "error", err)
+		log.Error("failed to create consumer", "error", err)
+		os.Exit(1)
 	}
 
 	go func() {
-		if err := kafkaConsumer.Run(context.Background()); err != nil {
-			log.Error("consumer error:", err)
-		}
+		c.Start()
 	}()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
-
-	log.Info("shutting down...")
-	if err := kafkaConsumer.Close(); err != nil {
-		log.Error("failed to close consumer:", err)
-	}
+	c.Close()
 }
 
 func setupLogger(env string) *slog.Logger {

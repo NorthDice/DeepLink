@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Env      string   `yaml:"env"`
 	Database Database `yaml:"database"`
-	Kafka    KafkaConfig
+	//Kafka    KafkaConfig
 }
 
 type Database struct {
@@ -19,9 +19,13 @@ type MongoConfig struct {
 	Uri  string `yaml:"uri" env-required:"true"`
 	Name string `yaml:"name" env-required:"true"`
 }
+
+/*
 type KafkaConfig struct {
 	Brokers []string `yaml:"brokers" env-required:"true"`
 }
+
+*/
 
 // fetchConfigPath fetches config path from command line flag or environment variable.
 // Priority: flag > env > default.
