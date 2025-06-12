@@ -11,7 +11,6 @@
 - 💬 Messaging between users  
 - 🌐 Distributed, event-driven backend
 
----
 
 ## 🧩 Architecture Overview
 
