@@ -24,7 +24,7 @@ All internal services communicate using **gRPC**, a high-performance, language-n
 - Permissions and roles
 
 ### 📬 Kafka — Event-Driven Messaging  
-**Apache Kafka** handles real-time, event-driven communication between services. Examples of Kafka events:
+**Apache Kafka** handles real-time, event-driven communication between services. Examples of Kafka events
 - Post creation
 - Notifications
 
