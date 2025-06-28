@@ -6,7 +6,7 @@
 
 - 🧑‍🤝‍🧑 Create and manage user profiles  
 - 📝 Share text and multimedia posts  
-- ❤️ Like, comment, and follow other users  
+- ❤️ Like, comment, and follow other users.
 - 🔔 Real-time notifications  
 - 💬 Messaging between users  
 - 🌐 Distributed, event-driven backend
